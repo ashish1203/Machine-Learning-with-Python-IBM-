@@ -1,0 +1,71 @@
+# Simple Linear regression - Linear Regression fits a linear model with coefficients a0,a1,a2...an
+# minimize the 'residual sum of squares' between the independent x in the dataset,
+# and the dependent y by the linear approximation.
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import pylab as pl
+import numpy as np
+from sklearn import linear_model
+from sklearn.metrics import r2_score
+
+df = pd.read_csv("FuelConsumption.csv")
+#print(df.head)  # it gives overall rows and column
+
+#print(df.describe()) # this will give the statistic data of data
+
+cdf = df[['ENGINESIZE','CYLINDERS','FUELCONSUMPTION_COMB','CO2EMISSIONS']]
+#print(cdf.head(9)) # first 9 elements from the excel sheet
+
+viz = cdf[['ENGINESIZE','CYLINDERS','FUELCONSUMPTION_COMB','CO2EMISSIONS']]
+
+#plt.scatter(cdf.ENGINESIZE, cdf.CO2EMISSIONS,  color='blue')
+#plt.xlabel("FUELCONSUMPTION_COMB")
+#plt.ylabel("Emission")
+
+msk = np.random.rand(len(df)) < 0.8  #select random rows
+#print(msk)
+train = cdf[msk]
+#print(train[['ENGINESIZE']])
+#print(test[['ENGINESIZE']])
+test = cdf[~msk]
+
+#plt.hist(train)
+#plt.show()
+#plt.scatter(train[['ENGINESIZE']], train[['CO2EMISSIONS']],  color='blue')
+#plt.xlabel("Engine size")
+#plt.ylabel("Emission")
+
+
+# create model
+regr = linear_model.LinearRegression()
+train_x = np.asanyarray(train[['ENGINESIZE']])  # asanarray - converts list into array
+train_y = np.asanyarray(train[['CO2EMISSIONS']])
+regr.fit(train_x, train_y) # model design with training data
+# The coefficients -the parameters of the fit line
+print('Coefficients: ', regr.coef_)
+print('Intercept: ',regr.intercept_)
+
+plt.scatter(train.ENGINESIZE, train.CO2EMISSIONS,  color='blue') # data plot
+plt.plot(train_x, regr.coef_[0][0]*train_x + regr.intercept_[0], '-r') # plot points on trainx data :  y = m*x+c
+plt.xlabel("Engine size")
+plt.ylabel("Emission")
+
+
+#predicts the test data
+test_x = np.asanyarray(test[['ENGINESIZE']])   # asanyarray : converts List into array
+test_y = np.asanyarray(test[['CO2EMISSIONS']])
+test_y_hat = regr.predict(test_x) # through regression model predicts the test data
+
+
+# check Error and accuracy using 3 paramters -
+# (1) Mean absolute error
+# (2) Mean squared error
+# (3) Rsquared accuracy measure - how close the data are to the fitted regression line.
+#     The higher the R-squared, the better the model fits your data
+
+print("Mean absolute error: %.2f" % np.mean(np.absolute(test_y_hat - test_y)))
+print("Residual sum of squares (MSE): %.2f" % np.mean((test_y_hat - test_y) ** 2))
+print("R2-score: %.2f" % r2_score(test_y_hat , test_y) )
+
+
