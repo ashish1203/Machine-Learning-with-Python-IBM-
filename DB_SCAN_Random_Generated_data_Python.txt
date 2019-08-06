@@ -1,0 +1,95 @@
+#DB(Density based)-Scan base clustering - unsupervised technique
+#tackles 2 problems - arbitary shaped clusters
+#                   - clusters inside clusters 
+
+#Density-based Clustering locates regions of high density that are separated from one another by regions #of low density. Density, in this context, is defined as the number of points within a specified radius.
+
+#works on 2 parametetrs- (1)Epsilon       (2)Minimum Points
+#Epsilon determine a specified radius that if includes enough number of points within, we call it dense #area
+#minimumSamples determine the minimum number of data points we want in a neighborhood to define a cluster.
+
+#(1) radius of neighbourhood (2) minimum number of data points in neighbourhood 
+
+#The whole idea is that if a particular point belongs to a cluster, it should be near to lots of other #points in that cluster.
+
+
+import numpy as np 
+from sklearn.cluster import DBSCAN 
+from sklearn.datasets.samples_generator import make_blobs 
+from sklearn.preprocessing import StandardScaler 
+import matplotlib.pyplot as plt 
+
+# create data-points
+# centroidLocation-Coordinates of the centroids that will generate the random data.
+# numSamples-The number of data points we want generated
+# clusterDeviation-The standard deviation between the clusters. 
+
+# function defination
+def createDataPoints(centroidLocation, numSamples, clusterDeviation):
+    # Create random data and store in feature matrix X and response vector y.
+    X, y = make_blobs(n_samples=numSamples, centers=centroidLocation, 
+                                cluster_std=clusterDeviation)
+    
+    # Standardize features by removing the mean and scaling to unit variance
+    X = StandardScaler().fit_transform(X)
+    return X, y
+
+#function call
+X, y = createDataPoints([[4,3], [2,-1], [-1,4]] , 1500, 0.5)
+#print(X, y)
+
+#Modelling
+epsilon = 0.3
+minimumSamples = 7
+db = DBSCAN(eps=epsilon, min_samples=minimumSamples).fit(X)
+labels = db.labels_
+aa=np.array(labels)
+print (aa[1:30])
+
+# Remove outliers which does not belong to any particular centroid
+core_samples_mask = np.zeros_like(db.labels_, dtype=bool) # Return an array of zeros with the same shape and type as a given array.
+#core_samples_mask
+#print(db.core_sample_indices_)
+core_samples_mask[db.core_sample_indices_] = True
+print(core_samples_mask)
+
+
+# Number of clusters in labels, ignoring noise if present.
+#labels
+aa= len(set(labels)) 
+#print(aa)           # 4  labels 
+n_clusters_ = aa - (1 if -1 in labels else 0)
+#n_clusters_  # it will come 3
+
+# Remove repetition in labels by turning it into a set.
+xx= set(labels)
+#print(xx)
+unique_labels = set(labels)
+#print(unique_labels)
+
+#Data visulaization
+
+colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
+#colors
+#print(labels)
+
+# Plot the points with colors
+# zip() is to map the similar index of multiple containers so that they can be used just using as single entity.
+for k, col in zip(unique_labels, colors): # corresponding to label; color will selected
+    if k == -1:
+        # Black used for noise.
+        col = 'k'
+
+    aa = (labels == k)  # boolean comparison - where condition meets puts TRUE else FALSE
+    class_member_mask = aa
+    print (aa)
+    #print(np.array(class_member_mask)[1:30])
+
+    # Plot the datapoints that are clustered
+    xy = X[class_member_mask & core_samples_mask]
+    plt.scatter(xy[:, 0], xy[:, 1],s=50, c=col, marker=u'o', alpha=0.5)
+
+    # Plot the outliers
+    xy = X[class_member_mask & ~core_samples_mask]
+    plt.scatter(xy[:, 0], xy[:, 1],s=50, c=col, marker=u'o', alpha=0.5)
+
