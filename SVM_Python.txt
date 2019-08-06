@@ -1,0 +1,81 @@
+# Support Vector Machine
+#SVM works by mapping data to a high-dimensional feature 
+#space so that data points can be categorized, 
+#even when the data are not otherwise linearly separable.
+
+#Basically, mapping data into a higher dimensional space is called kernelling.
+#The mathematical function used for the transformation is known as the kernel function,
+#1.Linear
+#2.Polynomial
+#3.Radial basis function (RBF)
+#4.Sigmoid
+
+import pandas as pd
+import numpy as np
+#from sklearn import svm
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix # for confusion matrix
+from sklearn.metrics import f1_score
+
+######data read 
+cell_df = pd.read_csv("cell_samples.csv")
+cell_df.head() # first five rows complete data
+#aa=np.shape(cell_df) # overall size data
+#print(aa) # 699 by 11
+
+######check the type of data- Is any categorical data is there or not 
+cell_df.dtypes # this will idea abt the data types involved in the dadatset - row-wise
+
+######drop the rows having categorical data - prsent in BareNuc
+cell_df = cell_df[pd.to_numeric(cell_df['BareNuc'], errors='coerce').notnull()] # 'coerce' - set NAN; notnull- changed into binary
+cell_df['BareNuc']
+cell_df['BareNuc'] = cell_df['BareNuc'].astype('int') # only int type copy
+cell_df.dtypes
+#bb= np.shape(cell_df) # overall size data- 683 by 11
+#print(bb)
+
+######feature data
+feature_df = cell_df[['Clump', 'UnifSize', 'UnifShape', 'MargAdh', 'SingEpiSize', 'BareNuc', 'BlandChrom', 'NormNucl', 'Mit']]
+feature_df # data selected from csv
+X = np.asarray(feature_df) # convert into array
+X[0:5]
+
+######Target class
+cell_df['Class']
+cc= np.shape(cell_df) # overall size data- 
+print(cc)
+cell_df['Class'] = cell_df['Class'].astype('int')
+dd= np.shape(cell_df) 
+print(dd)
+y = np.asarray(cell_df['Class'])
+y [0:5]
+
+######Spliting of dataset
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4) # 20% data split
+print ('Train set:', X_train.shape,  y_train.shape)
+print ('Test set:', X_test.shape,  y_test.shape)
+
+######Model the SVM with train data- training features and its output
+######model to predict the value of Class (that is, benign (=2) or malignant (=4)).
+
+clf = svm.SVC(kernel='rbf')
+clf.fit(X_train, y_train) 
+
+
+######Predict the test data 
+yhat = clf.predict(X_test)
+yhat [0:5]
+
+
+######Evaluation of result
+######Measure the accuracy using confusion matrix
+cm=confusion_matrix(y_test, yhat)
+diagonal_sum = cm.trace()
+sum_of_all_elements = cm.sum()
+Acc= diagonal_sum/sum_of_all_elements
+print(Acc)
+
+######Score metrices
+print(f1_score(y_test, yhat, average='weighted') )
+
+#print("Train set Accuracy: ", metrics.f1_score(y_test, yhat, average='weighted') )
